@@ -2,6 +2,7 @@
   "expo": {
     "name": "BMatch",
     "slug": "bmatch-expo",
+    "owner": "bityruthys-team",
     "scheme": "bmatch",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -24,6 +25,28 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9ce5addc-8ee1-4a77-9de3-a1be3f83fe96",
+      "fallbackToCacheTimeout": 0,
+      "checkOnLaunch": "ALWAYS",
+      "enabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-updates"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9ce5addc-8ee1-4a77-9de3-a1be3f83fe96"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

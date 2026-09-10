@@ -31,3 +31,4 @@ ios/
 .env.development.local
 .env.test.local
 .env.production.local
+EXPO_PUBLIC_*

@@ -7,10 +7,12 @@ import { Footer } from "../../src/components/Footer";
 import { Select } from "../../src/components/Select";
 import { NIGERIA_STATES, STATE_LGA_MAPPING } from "../../src/constants/nigeria-data";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "../../src/lib/supabase";
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const totalSteps = 6;
 
   // Form State
@@ -72,14 +74,65 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleComplete = () => {
-    Alert.alert(
-      "Registration Successful",
-      `Welcome to BMatch, ${formData.fullName}!\n\nA confirmation email has been sent to ${formData.email} with your login details:\n\nEmail: ${formData.email}\nPassword: ${formData.password.replace(/./g, '*')}\n\nPlease keep these safe.`,
-      [
-        { text: "Go to Dashboard", onPress: () => router.replace("/(tabs)/discover") }
-      ]
-    );
+  const handleComplete = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Sign up user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // 2. Insert profile details into 'profiles' table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: formData.fullName,
+            age_range: formData.age,
+            sex: formData.sex,
+            phone: formData.phone,
+            email: formData.email,
+            religion: formData.religion,
+            state: formData.state,
+            lga: formData.lga,
+            address: formData.address,
+            facility_name: formData.facilityName,
+            art_id: formData.artId,
+            hiv_confirmed: formData.hivStatusConfirmed,
+            terms_accepted: formData.termsAccepted,
+            last_seen_at: new Date().toISOString(),
+          });
+
+        if (profileError) throw profileError;
+
+        Alert.alert(
+          "Registration Successful",
+          `Welcome to BMatch, ${formData.fullName}!\n\nYour account has been created. Click below to sign in automatically.`,
+          [
+            {
+              text: "Sign In Now",
+              onPress: () => router.replace({
+                pathname: "/(auth)/login",
+                params: { email: formData.email, password: formData.password }
+              })
+            }
+          ]
+        );
+      }
+    } catch (error: any) {
+      Alert.alert("Registration Error", error.message || "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateField = (field: string, value: any) => {
@@ -248,6 +301,7 @@ export default function RegisterScreen() {
                 title="Previous"
                 onPress={prevStep}
                 variant="outline"
+                disabled={isLoading}
               />
             </View>
           )}
@@ -257,6 +311,7 @@ export default function RegisterScreen() {
               onPress={nextStep}
               variant={isStepValid() ? "primary" : "outline"}
               className={!isStepValid() ? "opacity-50" : ""}
+              loading={isLoading}
             />
           </View>
         </View>

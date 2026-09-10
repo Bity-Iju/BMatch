@@ -1,27 +1,57 @@
 import { View, Text, TouchableOpacity, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useState, useEffect } from "react";
 import { Input } from "../../src/components/Input";
 import { Button } from "../../src/components/Button";
 import { Footer } from "../../src/components/Footer";
+import { supabase } from "../../src/lib/supabase";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !password) {
+  useEffect(() => {
+    if (params.email && params.password) {
+      setEmail(params.email as string);
+      setPassword(params.password as string);
+      // Auto-trigger login if coming from registration
+      handleLogin(params.email as string, params.password as string);
+    }
+  }, [params]);
+
+  const handleLogin = async (overrideEmail?: string, overridePassword?: string) => {
+    const finalEmail = overrideEmail || email;
+    const finalPassword = overridePassword || password;
+
+    if (!finalEmail || !finalPassword) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
     setIsLoading(true);
-    // Mock login delay
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: finalEmail,
+        password: finalPassword,
+      });
+
+      if (error) throw error;
+
+      if (data.session) {
+        // Track app access
+        await supabase.from('profiles').update({
+          last_seen_at: new Date().toISOString()
+        }).eq('id', data.user.id);
+
+        router.replace("/(tabs)/discover");
+      }
+    } catch (error: any) {
+      Alert.alert("Login Error", error.message || "Invalid credentials.");
+    } finally {
       setIsLoading(false);
-      router.replace("/(tabs)/discover");
-    }, 1000);
+    }
   };
 
   return (
