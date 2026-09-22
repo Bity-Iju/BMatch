@@ -1,0 +1,5 @@
+{
+  "versionCode": 2,
+  "apkUrl": "https://YOUR_UPDATE_HOST.example.com/bmatch/app-debug.apk",
+  "releaseNotes": "Latest BMatch improvements"
+}

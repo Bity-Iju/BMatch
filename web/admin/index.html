@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BMatch Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div id="auth-screen" class="auth-screen" hidden>
+    <form id="login-form" class="login-card">
+      <div class="brand-mark">B</div>
+      <h1>BMatch Admin</h1>
+      <p>Sign in with an administrator account.</p>
+      <label>Email<input id="login-email" type="email" required autocomplete="username"></label>
+      <label>Password<input id="login-password" type="password" required autocomplete="current-password"></label>
+      <button class="primary" type="submit">Sign in</button>
+      <p id="login-error" class="login-error" role="alert"></p>
+    </form>
+  </div>
+  <div id="connection-banner" class="connection-banner" role="status"></div>
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="brand-mark">B</span><span>BMatch <small>ADMIN</small></span></a>
+    <nav aria-label="Admin navigation">
+      <button class="nav-link active" data-page="overview">Overview</button>
+      <button class="nav-link" data-page="users">Users</button>
+      <button class="nav-link" data-page="payments">Payments & receipts</button>
+      <button class="nav-link" data-page="matches">Matches</button>
+      <button class="nav-link" data-page="chats">Chats</button>
+      <button class="nav-link" data-page="settings">Settings</button>
+    </nav>
+    <div class="sidebar-footer"><span class="status-dot"></span> System operational<br><small>v1.0 • BMatch platform</small></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><p class="eyebrow">ADMINISTRATION</p><h1 id="page-title">Overview</h1></div>
+      <div class="admin-user"><span class="avatar">FA</span><span><strong>Fidelis Admin</strong><small>Administrator</small></span><button class="icon-button" aria-label="Notifications">🔔</button></div>
+    </header>
+
+    <section id="overview" class="page active">
+      <div class="welcome"><div><h2>Good afternoon, Fidelis</h2><p>Monitor registrations, approvals, payments and platform activity.</p></div><button class="primary" data-page-link="users">Review registrations →</button></div>
+      <div class="stat-grid">
+        <article class="stat-card"><span class="stat-icon purple">◉</span><div><span>Total accounts</span><strong>248</strong><small class="positive">↑ 12% this month</small></div></article>
+        <article class="stat-card"><span class="stat-icon orange">✓</span><div><span>Awaiting approval</span><strong>18</strong><small class="warning">Needs review</small></div></article>
+        <article class="stat-card"><span class="stat-icon green">₦</span><div><span>Receipts to verify</span><strong>9</strong><small class="positive">₦135,000 pending</small></div></article>
+        <article class="stat-card"><span class="stat-icon blue">♥</span><div><span>Active matches</span><strong>76</strong><small class="positive">↑ 8 this week</small></div></article>
+      </div>
+      <div class="content-grid"><article class="panel"><div class="panel-heading"><h3>Recent registrations</h3><button class="text-button" data-page-link="users">View all</button></div><div id="recent-users"></div></article><article class="panel"><div class="panel-heading"><h3>Activity</h3><span class="muted">Today</span></div><div class="activity"><p><b class="activity-dot green-dot"></b><span><strong>Account approved</strong><small>Sarah Johnson was approved</small></span><time>10m</time></p><p><b class="activity-dot orange-dot"></b><span><strong>Receipt uploaded</strong><small>New receipt from ART-008</small></span><time>34m</time></p><p><b class="activity-dot blue-dot"></b><span><strong>New match created</strong><small>Match #BM-076 is pending review</small></span><time>1h</time></p></div></article></div>
+    </section>
+
+    <section id="users" class="page"><div class="page-heading"><div><h2>User accounts</h2><p>Review registrations and manage account approval.</p></div><button class="primary">Export CSV</button></div><div class="toolbar"><input id="user-search" type="search" placeholder="Search name, email or ART ID"><select><option>All statuses</option><option>Pending</option><option>Active</option><option>Suspended</option></select></div><div class="panel table-wrap"><table><thead><tr><th>User</th><th>ART ID</th><th>Location</th><th>Registered</th><th>Status</th><th></th></tr></thead><tbody id="users-table"></tbody></table></div></section>
+
+    <section id="payments" class="page"><div class="page-heading"><div><h2>Payments & receipts</h2><p>Verify attached payment receipts before approving accounts.</p></div><span class="pill orange">9 awaiting review</span></div><div class="panel table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Receipt</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody id="payments-table"></tbody></table></div></section>
+
+    <section id="matches" class="page"><div class="page-heading"><div><h2>Match oversight</h2><p>View every match created on the platform.</p></div></div><div class="panel table-wrap"><table><thead><tr><th>Match</th><th>Participants</th><th>Created</th><th>Status</th></tr></thead><tbody id="matches-table"></tbody></table></div></section>
+
+    <section id="chats" class="page"><div class="page-heading"><div><h2>Chat oversight</h2><p>Monitor conversations and safety reports without reading private messages by default.</p></div></div><div class="stat-grid"><article class="stat-card"><div><span>Active conversations</span><strong id="conversation-count">0</strong></div></article><article class="stat-card"><div><span>Messages stored</span><strong id="message-count">0</strong><small class="positive">Live database total</small></div></article></div><div class="panel notice"><strong>Privacy-first moderation</strong><p>Only reported conversations should be opened by an authorized administrator. Keep user chats private unless a safety review is required.</p></div></section>
+
+    <section id="settings" class="page"><div class="page-heading"><div><h2>Platform settings</h2><p>Configure approval and payment review rules.</p></div></div><div class="panel form-panel"><label>Payment account name<input value="Fidelis Bitrus Ijudona"></label><label>Payment account number<input value="9031335993"></label><label>Registration approval policy<select><option>Manual approval required</option><option>Auto-approve after receipt verification</option></select></label><label class="switch-row"><span><strong>Email alerts</strong><small>Notify admins about new registrations and receipts</small></span><input type="checkbox" checked></label><button class="primary">Save settings</button></div></section>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" onerror="this.remove()"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
