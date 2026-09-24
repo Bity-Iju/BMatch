@@ -74,6 +74,17 @@ async function loadLiveData() {
     render();
     return;
   }
+  const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const { data: adminMembership, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+  if (adminError) throw adminError;
+  if (!adminMembership) {
+    throw new Error("This account is not an admin. Add its user ID to public.admin_users in Supabase.");
+  }
   const { data: profileData, error: profileError } = await supabase.from("profile_access").select("*").order("created_at", { ascending: false });
   if (profileError) throw profileError;
   users = (profileData || []).map((profile) => ({

@@ -15,6 +15,14 @@
 
    Do not insert into `public.Test_1`; that table does not exist. If the schema has not been run yet, run `supabase\schema.sql` first.
 
+   If the account already exists, verify that it is registered as an admin:
+
+   ```sql
+   select user_id from public.admin_users where user_id = 'YOUR_AUTH_USER_UUID';
+   ```
+
+   The result must contain the same UUID as the account in **Authentication > Users**.
+
 5. Copy `supabase-config.example.js` to `supabase-config.js` and set the project URL and anon key from **Project Settings > API**.
 6. Open `index.html` through a local web server. Do not open it with `file://` when connecting to Supabase.
 
