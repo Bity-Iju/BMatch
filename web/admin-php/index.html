@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b5e20">
   <title>BMatch Admin</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" type="image/png" href="assets/logo.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
   <div id="auth-screen" class="auth-screen" hidden>
     <form id="login-form" class="login-card">
-      <div class="brand-mark">B</div>
+      <div class="auth-brand"><img src="assets/logo.png" alt="BMatch logo"></div>
       <h1>BMatch Admin</h1>
       <p>Sign in with an administrator account.</p>
       <label>Email<input id="login-email" type="email" required autocomplete="username"></label>
@@ -20,7 +24,7 @@
   </div>
   <div id="connection-banner" class="connection-banner" role="status"></div>
   <aside class="sidebar">
-    <a class="brand" href="#overview"><span class="brand-mark">B</span><span>BMatch <small>ADMIN</small></span></a>
+    <a class="brand" href="#overview"><span class="brand-logo"><img src="assets/logo.png" alt="BMatch logo"></span><span>BMatch <small>ADMIN</small></span></a>
     <nav aria-label="Admin navigation">
       <button class="nav-link active" data-page="overview">Overview</button>
       <button class="nav-link" data-page="users">Users</button>
