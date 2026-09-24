@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { URL } = require("node:url");
 
-const root = path.resolve(__dirname, "admin");
+const root = path.resolve(__dirname, "admin-php");
 const port = Number.parseInt(process.env.PORT || "10000", 10);
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || "";
