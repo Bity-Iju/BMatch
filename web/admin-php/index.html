@@ -26,12 +26,12 @@
   <aside class="sidebar">
     <a class="brand" href="#overview"><span class="brand-logo"><img src="assets/logo.png" alt="BMatch logo"></span><span>BMatch <small>ADMIN</small></span></a>
     <nav aria-label="Admin navigation">
-      <button class="nav-link active" data-page="overview">Overview</button>
-      <button class="nav-link" data-page="users">Users</button>
-      <button class="nav-link" data-page="payments">Payments & receipts</button>
-      <button class="nav-link" data-page="matches">Matches</button>
-      <button class="nav-link" data-page="chats">Chats</button>
-      <button class="nav-link" data-page="settings">Settings</button>
+      <a class="nav-link active" href="#overview" data-page="overview">Overview</a>
+      <a class="nav-link" href="#users" data-page="users">Users</a>
+      <a class="nav-link" href="#payments" data-page="payments">Payments & receipts</a>
+      <a class="nav-link" href="#matches" data-page="matches">Matches</a>
+      <a class="nav-link" href="#chats" data-page="chats">Chats</a>
+      <a class="nav-link" href="#settings" data-page="settings">Settings</a>
     </nav>
     <div class="sidebar-footer"><span class="status-dot"></span> System operational<br><small>v1.0 • BMatch platform</small></div>
   </aside>
@@ -43,14 +43,14 @@
     </header>
 
     <section id="overview" class="page active">
-      <div class="welcome"><div><h2>Good afternoon, Fidelis</h2><p>Monitor registrations, approvals, payments and platform activity.</p></div><button class="primary" data-page-link="users">Review registrations →</button></div>
+      <div class="welcome"><div><h2>Good afternoon, Fidelis</h2><p>Monitor registrations, approvals, payments and platform activity.</p></div><a class="primary" href="#users" data-page-link="users">Review registrations →</a></div>
       <div class="stat-grid">
         <article class="stat-card"><span class="stat-icon purple">◉</span><div><span>Total accounts</span><strong id="total-accounts">0</strong><small id="accounts-note">Live database total</small></div></article>
         <article class="stat-card"><span class="stat-icon orange">✓</span><div><span>Awaiting approval</span><strong id="pending-accounts">0</strong><small id="pending-note">Live database total</small></div></article>
         <article class="stat-card"><span class="stat-icon green">₦</span><div><span>Receipts to verify</span><strong id="pending-payments">0</strong><small id="payments-note">Live database total</small></div></article>
         <article class="stat-card"><span class="stat-icon blue">♥</span><div><span>Active matches</span><strong id="active-matches">0</strong><small id="matches-note">Live database total</small></div></article>
       </div>
-      <div class="content-grid"><article class="panel"><div class="panel-heading"><h3>Recent registrations</h3><button class="text-button" data-page-link="users">View all</button></div><div id="recent-users"></div></article><article class="panel"><div class="panel-heading"><h3>Activity</h3><span class="muted">Live</span></div><div id="activity-list" class="activity"></div></article></div>
+      <div class="content-grid"><article class="panel"><div class="panel-heading"><h3>Recent registrations</h3><a class="text-button" href="#users" data-page-link="users">View all</a></div><div id="recent-users"></div></article><article class="panel"><div class="panel-heading"><h3>Activity</h3><span class="muted">Live</span></div><div id="activity-list" class="activity"></div></article></div>
     </section>
 
     <section id="users" class="page"><div class="page-heading"><div><h2>User accounts</h2><p>Review registrations and manage account approval.</p></div><button class="primary export-csv" type="button">Export CSV</button></div><div class="toolbar"><input id="user-search" type="search" placeholder="Search name, email or ART ID"><select><option>All statuses</option><option>Pending</option><option>Active</option><option>Suspended</option></select></div><div class="panel table-wrap"><table><thead><tr><th>User</th><th>ART ID</th><th>Location</th><th>Registered</th><th>Status</th><th></th></tr></thead><tbody id="users-table"></tbody></table></div></section>
