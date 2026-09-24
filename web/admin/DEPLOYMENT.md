@@ -5,6 +5,10 @@ The static admin portal runs on a Render **Node** web service.
 Leave the Render service **Root Directory** blank. The repository root must be
 the working directory so `web/server.js` resolves correctly.
 
+The available sections can be opened directly at `/overview`, `/users`,
+`/payments`, `/matches`, `/chats`, and `/settings`. Sign-in is still required
+before Supabase data is displayed.
+
 Set the Render service commands to:
 
 - Build command: `echo "No build required"`

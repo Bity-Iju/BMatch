@@ -25,9 +25,24 @@ const contentTypes = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
 };
+const pageRoutes = new Map([
+  ["/admin", "overview"],
+  ["/overview", "overview"],
+  ["/users", "users"],
+  ["/payments", "payments"],
+  ["/matches", "matches"],
+  ["/chats", "chats"],
+  ["/settings", "settings"],
+]);
 
 const server = http.createServer((request, response) => {
   const requestUrl = new URL(request.url || "/", "http://localhost");
+  const page = pageRoutes.get(requestUrl.pathname);
+  if (page) {
+    response.writeHead(302, { Location: `/#${page}` });
+    response.end();
+    return;
+  }
   const requestedPath = requestUrl.pathname === "/" ? "/index.html" : requestUrl.pathname;
   const filePath = path.resolve(root, `.${requestedPath}`);
 
