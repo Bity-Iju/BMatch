@@ -68,6 +68,36 @@ function setConnectionStatus(message, connected = false) {
   banner.classList.toggle("connected", connected);
 }
 
+function exportUsers() {
+  const headers = ["Name", "Email", "ART ID", "Location", "Registered", "Status"];
+  const rows = users.map((user) => [user.name, user.email, user.art, user.location, user.date, user.status]);
+  const csv = [headers, ...rows].map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  link.download = "bmatch-users.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
+  toast("User list exported");
+}
+
+async function saveSettings() {
+  if (!supabase) {
+    toast("Connect Supabase before saving settings");
+    return;
+  }
+  const { error } = await supabase.from("admin_settings").upsert({
+    id: true,
+    currency: "NGN",
+    payment_initiation_threshold: 5000,
+    auto_approve_users: $("#approval-policy").value === "automatic",
+  });
+  if (error) {
+    toast(error.message);
+    return;
+  }
+  toast("Settings saved");
+}
+
 async function loadLiveData() {
   if (!hasSupabaseConfig) {
     setConnectionStatus("Supabase is not connected. Add the project URL and anon public key to supabase-config.js.");
@@ -156,26 +186,40 @@ $("#login-form").addEventListener("submit", async (event) => {
 document.addEventListener("click", async (event) => {
   const navigation = event.target.closest("[data-page],[data-page-link]");
   if (navigation) showPage(navigation.dataset.page || navigation.dataset.pageLink);
-  if (event.target.matches(".approve")) {
+  const action = event.target.closest(".approve,.verify,.receipt,.export-csv,.save-settings,.icon-button");
+  if (!action) return;
+  if (action.matches(".export-csv")) {
+    exportUsers();
+    return;
+  }
+  if (action.matches(".save-settings")) {
+    await saveSettings();
+    return;
+  }
+  if (action.matches(".icon-button")) {
+    toast("No new notifications");
+    return;
+  }
+  if (action.matches(".approve")) {
     if (hasSupabaseConfig) {
-      const { error } = await supabase.from("profiles").update({ status: "active" }).eq("id", event.target.dataset.id);
+      const { error } = await supabase.from("profiles").update({ status: "active" }).eq("id", action.dataset.id);
       if (error) { toast(error.message); return; }
     } else {
-      const user = users.find((item) => item.art === event.target.dataset.art);
+      const user = users.find((item) => item.art === action.dataset.art);
       if (user) user.status = "Active";
     }
     render();
     toast("Account approved");
   }
-  if (event.target.matches(".verify") && supabase) {
-    const { error } = await supabase.from("payments").update({ status: "verified", reviewed_at: new Date().toISOString() }).eq("id", event.target.dataset.id);
+  if (action.matches(".verify") && supabase) {
+    const { error } = await supabase.from("payments").update({ status: "verified", reviewed_at: new Date().toISOString() }).eq("id", action.dataset.id);
     if (error) { toast(error.message); return; }
     await loadLiveData();
     toast("Receipt verified");
   }
-  if (event.target.matches(".receipt") && event.target.dataset.path) {
+  if (action.matches(".receipt") && action.dataset.path) {
     if (!supabase) { toast("Connect Supabase to open receipts"); return; }
-    const { data, error } = await supabase.storage.from("payment-receipts").createSignedUrl(event.target.dataset.path, 300);
+    const { data, error } = await supabase.storage.from("payment-receipts").createSignedUrl(action.dataset.path, 300);
     if (error) { toast(error.message); return; }
     window.open(data.signedUrl, "_blank", "noopener");
   }
@@ -189,4 +233,5 @@ $("#user-search").addEventListener("input", (event) => {
 if (hasSupabaseConfig) supabase.auth.onAuthStateChange((_event, session) => { if (session) requireAdmin(); });
 render();
 showPage(location.hash.slice(1) || "overview");
+window.addEventListener("hashchange", () => showPage(location.hash.slice(1) || "overview"));
 requireAdmin();
