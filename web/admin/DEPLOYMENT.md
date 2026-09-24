@@ -2,6 +2,9 @@
 
 The static admin portal runs on a Render **Node** web service.
 
+Leave the Render service **Root Directory** blank. The repository root must be
+the working directory so `web/server.js` resolves correctly.
+
 Set the Render service commands to:
 
 - Build command: `echo "No build required"`

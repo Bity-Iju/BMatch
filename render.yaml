@@ -1,10 +1,10 @@
 services:
   - type: web
     name: bmatch
-    runtime: docker
+    runtime: node
     plan: free
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    buildCommand: echo "No build required"
+    startCommand: node web/server.js
     envVars:
       - key: SUPABASE_URL
         sync: false
