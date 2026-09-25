@@ -1,6 +1,8 @@
-# BMatch 💙
+# BityMatch (BMatch) 💙
 
-**BMatch** is a professional and secure matchmaking application built with Expo and React Native, specifically designed to foster a safe and supportive community for HIV-positive individuals in Nigeria.
+> **Created and Owned by Bity** — The "B" in BityMatch/BMatch stands for **Bity**.
+
+**BityMatch** is a professional and secure matchmaking and healthcare coordination application, specifically designed to foster a safe and supportive community for HIV-positive individuals in Nigeria.
 
 ![Version](https://img.shields.io/badge/version-1.0.9.26-navyblue)
 ![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue)

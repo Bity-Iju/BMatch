@@ -20,6 +20,9 @@ import androidx.compose.material.icons.rounded.AttachFile
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -396,6 +399,82 @@ fun MessageDetailPane(
                 tonalElevation = 8.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                var showBottomSheet by remember { mutableStateOf(false) }
+
+                if (showBottomSheet) {
+                    ModalBottomSheet(
+                        onDismissRequest = { showBottomSheet = false }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 16.dp)
+                                .navigationBarsPadding(),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            Text(
+                                text = "Share Content",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                AttachmentOptionItem(
+                                    icon = Icons.Rounded.AttachFile,
+                                    label = "Document",
+                                    color = Color(0xFF3F51B5)
+                                ) {
+                                    showBottomSheet = false
+                                    onSendMessage("📎 Attached Document: Professional_Credentials.pdf")
+                                }
+                                AttachmentOptionItem(
+                                    icon = Icons.Rounded.Person,
+                                    label = "Contact",
+                                    color = Color(0xFF009688)
+                                ) {
+                                    showBottomSheet = false
+                                    onSendMessage("👤 Shared Contact: Dr. Amina Bello (ART-90313)")
+                                }
+                                AttachmentOptionItem(
+                                    icon = Icons.Rounded.LocationOn,
+                                    label = "Location",
+                                    color = Color(0xFF4CAF50)
+                                ) {
+                                    showBottomSheet = false
+                                    onSendMessage("📍 Shared Location: Ikeja General Hospital, Lagos")
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                AttachmentOptionItem(
+                                    icon = Icons.Rounded.Info,
+                                    label = "Audio / Voice",
+                                    color = Color(0xFFFF9800)
+                                ) {
+                                    showBottomSheet = false
+                                    onSendMessage("🎙️ Voice Note (0:14)")
+                                }
+                                AttachmentOptionItem(
+                                    icon = Icons.Rounded.Search,
+                                    label = "Gallery",
+                                    color = Color(0xFFE91E63)
+                                ) {
+                                    showBottomSheet = false
+                                    onSendMessage("📷 Photo Attachment (clinical_review_scan.jpg)")
+                                }
+                                Spacer(modifier = Modifier.width(60.dp))
+                            }
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -404,10 +483,10 @@ fun MessageDetailPane(
                         .imePadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { showBottomSheet = true }) {
                         Icon(
                             imageVector = Icons.Rounded.AttachFile,
-                            contentDescription = "Attach File",
+                            contentDescription = "Attach File / Media",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -546,6 +625,38 @@ fun getAvatarColor(seed: String): Color {
         Color(0xFFFF5722)  // Deep Orange
     )
     return colors[Math.abs(hash) % colors.size]
+}
+
+@Composable
+fun AttachmentOptionItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(color),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(text = label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+    }
 }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640)

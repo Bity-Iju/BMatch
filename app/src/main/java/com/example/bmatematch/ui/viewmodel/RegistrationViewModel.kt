@@ -27,12 +27,17 @@ data class RegistrationState(
     val dob: String = "",
     val sex: String = "",
     val religion: String = "",
+    val ageGroup: String = "",
+    val maritalStatus: String = "",
+    val professionalCategory: String = "",
     val statusUpdate: String = "Feeling great today!",
     val avatarRes: String = "avatar_1",
     val uniqueVersionNumber: String = "",
     val paymentReceiptUri: String? = null
     ,val paymentExempt: Boolean = false,
     val supabaseSyncError: String? = null
+    ,val loginError: String? = null,
+    val loginComplete: Boolean = false
 )
 
 class RegistrationViewModel : ViewModel() {
@@ -49,8 +54,19 @@ class RegistrationViewModel : ViewModel() {
         }
     }
 
+    fun updatePersonalDetails(name: String, email: String, artId: String, facilityName: String) {
+        updatePersonalDetails(name, email, "", artId, facilityName)
+    }
+
     fun syncToSupabase() {
-        val registration = _uiState.value
+        val current = _uiState.value
+        val registration = if (current.uniqueVersionNumber.isBlank()) {
+            current.copy(uniqueVersionNumber = createUniqueVersion(current.email)).also { prepared ->
+                _uiState.update { state -> state.copy(uniqueVersionNumber = prepared.uniqueVersionNumber) }
+            }
+        } else {
+            current
+        }
         viewModelScope.launch {
             runCatching { SupabaseClient().register(registration) }
                 .onSuccess { access ->
@@ -58,6 +74,18 @@ class RegistrationViewModel : ViewModel() {
                 }
                 .onFailure { error -> _uiState.update { it.copy(supabaseSyncError = error.message) } }
         }
+    }
+
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            runCatching { SupabaseClient().login(email, password) }
+                .onSuccess { _uiState.update { it.copy(loginError = null, loginComplete = true) } }
+                .onFailure { error -> _uiState.update { it.copy(loginError = error.message ?: "Unable to sign in") } }
+        }
+    }
+
+    fun clearLoginResult() {
+        _uiState.update { it.copy(loginComplete = false, loginError = null) }
     }
 
     fun updateLocation(state: String, lga: String) {
@@ -68,8 +96,16 @@ class RegistrationViewModel : ViewModel() {
         _uiState.update { it.copy(address = address, age = age, dob = dob) }
     }
 
-    fun updateStep5Fields(sex: String, religion: String) {
-        _uiState.update { it.copy(sex = sex, religion = religion) }
+    fun updateStep5Fields(sex: String, religion: String, ageGroup: String, maritalStatus: String, professionalCategory: String) {
+        _uiState.update { 
+            it.copy(
+                sex = sex, 
+                religion = religion, 
+                ageGroup = ageGroup, 
+                maritalStatus = maritalStatus, 
+                professionalCategory = professionalCategory
+            ) 
+        }
     }
 
     fun updateProfile(name: String, address: String, age: String, dob: String, sex: String, religion: String, statusUpdate: String, avatarRes: String) {
@@ -105,11 +141,15 @@ class RegistrationViewModel : ViewModel() {
         if (currentEmail.isBlank()) return false
         
         // Tie registration to user's email and assign unique version number/identifier
-        val emailHash = currentEmail.hashCode().absoluteValue
-        val randomPart = UUID.randomUUID().toString().substring(0, 8).uppercase()
-        val uniqueId = "BM-VER-$emailHash-$randomPart"
+        val uniqueId = createUniqueVersion(currentEmail)
         
         _uiState.update { it.copy(uniqueVersionNumber = uniqueId) }
         return true
+    }
+
+    private fun createUniqueVersion(email: String): String {
+        val emailHash = email.hashCode().absoluteValue
+        val randomPart = UUID.randomUUID().toString().substring(0, 8).uppercase()
+        return "BM-VER-$emailHash-$randomPart"
     }
 }

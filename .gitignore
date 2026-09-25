@@ -39,3 +39,7 @@ EXPO_PUBLIC_*
 # Local Supabase/PHP credentials
 web/admin/supabase-config.js
 web/admin-php/config.php
+web/admin-php/supabase-config.js
+
+# Render/Docker runtime files
+.render/

@@ -1,26 +1,33 @@
 const $ = (selector) => document.querySelector(selector);
 const config = window.BMATCH_SUPABASE;
-const supabase = config && window.supabase
+const hasSupabaseConfig = Boolean(
+  config &&
+  window.supabase &&
+  /^https:\/\/[^\s/]+\.supabase\.co(?:\/.*)?$/.test(config.url || "") &&
+  config.anonKey &&
+  config.anonKey !== "YOUR_SUPABASE_ANON_KEY"
+);
+const supabase = hasSupabaseConfig
   ? window.supabase.createClient(config.url, config.anonKey)
   : null;
-const hasSupabaseConfig = Boolean(
-  supabase &&
-  config.url &&
-  !config.url.endsWith("/rest/v1/") &&
-  !config.anonKey.includes("PASTE_") &&
-  config.anonKey !== "******"
-);
 
-let users = [
-  { name: "Sarah Johnson", email: "sarah@example.com", art: "ART-008", location: "Ikeja, Lagos", date: "Today", status: "Pending" },
-  { name: "Dr. Amina Bello", email: "amina@example.com", art: "ART-007", location: "Abuja Municipal, FCT", date: "Yesterday", status: "Active" },
-  { name: "John Peter", email: "john@example.com", art: "ART-006", location: "Lagos Island, Lagos", date: "Sep 20, 2026", status: "Pending" },
-  { name: "Eunice Taiwo", email: "eunice@example.com", art: "ART-005", location: "Ibadan North, Oyo", date: "Sep 18, 2026", status: "Active" }
+const demoUsers = [
+  { id: "demo-user-1", name: "Adaeze Nwosu", email: "adaeze@example.com", art: "BM-1001", location: "Ikeja, Lagos", date: "2026-09-20", status: "Active", paymentExempt: true },
+  { id: "demo-user-2", name: "Chinedu Okafor", email: "chinedu@example.com", art: "BM-1002", location: "Wuse, Abuja", date: "2026-09-21", status: "Pending", paymentExempt: false },
+  { id: "demo-user-3", name: "Fatima Bello", email: "fatima@example.com", art: "BM-1003", location: "Kano Municipal, Kano", date: "2026-09-22", status: "Active", paymentExempt: false },
 ];
-let payments = [];
-let matches = [];
-let conversations = [];
-let messages = [];
+const demoPayments = [
+  { id: "demo-payment-1", name: "Chinedu Okafor", art: "BM-1002", amount: 5000, receipt: "receipt-bm-1002.jpg", date: "2026-09-21", status: "Pending" },
+  { id: "demo-payment-2", name: "Fatima Bello", art: "BM-1003", amount: 5000, receipt: "receipt-bm-1003.jpg", date: "2026-09-22", status: "Verified" },
+];
+const demoMatches = [
+  { id: "demo-match-1", first_user_id: "demo-user-1", second_user_id: "demo-user-3", status: "active", created_at: "2026-09-23T10:30:00Z" },
+];
+let users = [...demoUsers];
+let payments = [...demoPayments];
+let matches = [...demoMatches];
+let conversations = [{ id: "demo-conversation-1" }];
+let messages = [{ id: "demo-message-1" }, { id: "demo-message-2" }];
 
 function userRow(user) {
   const access = user.paymentExempt
@@ -30,7 +37,21 @@ function userRow(user) {
 }
 
 function render() {
+  const pendingUsers = users.filter((user) => user.status === "Pending").length;
+  const pendingPayments = payments.filter((payment) => payment.status === "Pending").length;
+  const activeMatches = matches.filter((match) => match.status === "active").length;
+  $("#total-accounts").textContent = users.length;
+  $("#pending-accounts").textContent = pendingUsers;
+  $("#pending-payments").textContent = pendingPayments;
+  $("#active-matches").textContent = activeMatches;
+  $("#accounts-note").textContent = "Live database total";
+  $("#pending-note").textContent = pendingUsers ? "Needs review" : "None pending";
+  $("#payments-note").textContent = pendingPayments ? "Needs review" : "None pending";
+  $("#matches-note").textContent = "Live database total";
   $("#recent-users").innerHTML = users.slice(0, 3).map((user) => `<div class="recent-row"><span class="mini-avatar">${user.name.split(" ").map((part) => part[0]).join("")}</span><span><strong>${user.name}</strong><small>${user.art} • ${user.location}</small></span><time>${user.date}</time></div>`).join("");
+  $("#activity-list").innerHTML = users.length || payments.length || matches.length
+    ? `<p><b class="activity-dot green-dot"></b><span><strong>Database connected</strong><small>${users.length} users, ${payments.length} payments, ${matches.length} matches loaded</small></span></p>`
+    : `<p class="muted">No records found in the connected database.</p>`;
   $("#users-table").innerHTML = users.map(userRow).join("");
   $("#payments-table").innerHTML = payments.length
     ? payments.map((payment) => `<tr><td><strong>${payment.name}</strong><small class="muted">${payment.art}</small></td><td>₦${Number(payment.amount).toLocaleString()}</td><td><button class="action receipt" data-path="${payment.receipt || ""}">${payment.receipt || "No receipt"}</button></td><td>${new Date(payment.date).toLocaleDateString()}</td><td><span class="pill ${payment.status === "Verified" ? "green" : "orange"}">${payment.status}</span></td><td>${payment.status === "Pending" ? `<button class="action verify" data-id="${payment.id}">Verify</button>` : "—"}</td></tr>`).join("")
@@ -172,7 +193,7 @@ async function requireAdmin() {
   }
 }
 
-$("#login-form").addEventListener("submit", async (event) => {
+$("#login-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   $("#login-error").textContent = "";
   const { error } = await supabase.auth.signInWithPassword({ email: $("#login-email").value, password: $("#login-password").value });
@@ -225,7 +246,7 @@ document.addEventListener("click", async (event) => {
   }
 });
 
-$("#user-search").addEventListener("input", (event) => {
+$("#user-search")?.addEventListener("input", (event) => {
   const query = event.target.value.toLowerCase();
   $("#users-table").innerHTML = users.filter((user) => `${user.name} ${user.email} ${user.art}`.toLowerCase().includes(query)).map(userRow).join("");
 });

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 val conversations by chatViewModel.conversations.collectAsStateWithLifecycle()
                 val selectedConversationId by chatViewModel.selectedConversationId.collectAsStateWithLifecycle()
 
-                val backStack = rememberNavBackStack(RegistrationStep1)
+                val backStack = rememberNavBackStack(Login)
 
                 NavDisplay(
                     backStack = backStack,
@@ -65,6 +66,25 @@ class MainActivity : ComponentActivity() {
                     },
                     entryProvider = { key ->
                         when (key) {
+                            is Login -> NavEntry(key) {
+                                LoginScreen(
+                                    state = registrationState,
+                                    onLogin = { email, password ->
+                                        registrationViewModel.login(email, password)
+                                    },
+                                    onRegister = {
+                                        registrationViewModel.clearLoginResult()
+                                        backStack.add(RegistrationStep1)
+                                    }
+                                )
+                                LaunchedEffect(registrationState.loginComplete) {
+                                    if (registrationState.loginComplete) {
+                                        backStack.clear()
+                                        backStack.add(MainDashboard)
+                                        registrationViewModel.clearLoginResult()
+                                    }
+                                }
+                            }
                             is RegistrationStep1 -> NavEntry(key) {
                                 Step1ConsentScreen(
                                     state = registrationState,
@@ -105,8 +125,8 @@ class MainActivity : ComponentActivity() {
                             is RegistrationStep5 -> NavEntry(key) {
                                 Step5FurtherInfoScreen(
                                     state = registrationState,
-                                    onUpdateFields = { sex, religion ->
-                                        registrationViewModel.updateStep5Fields(sex, religion)
+                                    onUpdateFields = { sex, religion, ageGroup, maritalStatus, professionalCategory ->
+                                        registrationViewModel.updateStep5Fields(sex, religion, ageGroup, maritalStatus, professionalCategory)
                                     },
                                     onNext = { backStack.add(RegistrationStep6) },
                                     onBack = { backStack.removeAt(backStack.size - 1) }

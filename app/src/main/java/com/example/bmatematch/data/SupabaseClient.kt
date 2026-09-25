@@ -15,8 +15,19 @@ object SupabaseConfig {
 data class SupabaseAccess(val userId: String, val paymentExempt: Boolean)
 
 class SupabaseClient {
+    suspend fun login(email: String, password: String): Boolean = withContext(Dispatchers.IO) {
+        requireConfigured()
+        request(
+            "${SupabaseConfig.url}/auth/v1/token?grant_type=password",
+            "POST",
+            JSONObject().put("email", email).put("password", password).toString()
+        )
+        true
+    }
+
     suspend fun register(state: RegistrationState): SupabaseAccess? = withContext(Dispatchers.IO) {
-        if (SupabaseConfig.url.contains("YOUR_PROJECT") || state.password.isBlank()) return@withContext null
+        requireConfigured()
+        require(state.password.isNotBlank()) { "Password is required" }
         val auth = request(
             "${SupabaseConfig.url}/auth/v1/signup",
             "POST",
@@ -24,7 +35,8 @@ class SupabaseClient {
         )
         val authJson = JSONObject(auth)
         val userId = authJson.getJSONObject("user").getString("id")
-        val accessToken = authJson.optString("access_token").ifBlank { return@withContext null }
+        val accessToken = authJson.optString("access_token")
+            .ifBlank { error("Registration requires email confirmation before profile setup") }
         request(
             "${SupabaseConfig.url}/rest/v1/profiles",
             "POST",
@@ -43,6 +55,7 @@ class SupabaseClient {
                 .put("religion", state.religion)
                 .put("terms_accepted", state.consentAccepted)
                 .put("unique_version_number", state.uniqueVersionNumber)
+                .put("dob", state.dob)
                 .toString(),
             accessToken
         )
@@ -54,6 +67,16 @@ class SupabaseClient {
         )
         val rows = org.json.JSONArray(profile)
         SupabaseAccess(userId, rows.length() > 0 && rows.getJSONObject(0).optBoolean("payment_exempt"))
+    }
+
+    private fun requireConfigured() {
+        require(
+            !SupabaseConfig.url.contains("YOUR_PROJECT") &&
+                SupabaseConfig.anonKey.isNotBlank() &&
+                SupabaseConfig.anonKey != "******"
+        ) {
+            "Supabase is not configured"
+        }
     }
 
     private fun request(url: String, method: String, body: String?, token: String = SupabaseConfig.anonKey): String {

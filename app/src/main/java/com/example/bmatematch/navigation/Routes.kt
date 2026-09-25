@@ -10,6 +10,9 @@ sealed interface BMatchRoute : NavKey
 data object RegistrationStep1 : BMatchRoute
 
 @Serializable
+data object Login : BMatchRoute
+
+@Serializable
 data object RegistrationStep2 : BMatchRoute
 
 @Serializable
@@ -53,4 +56,3 @@ data object MatchingPage : BMatchRoute
 
 @Serializable
 data object AdminMatches : BMatchRoute
-

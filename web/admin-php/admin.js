@@ -1,15 +1,15 @@
 const $ = (selector) => document.querySelector(selector);
 const config = window.BMATCH_SUPABASE;
-const supabase = config && window.supabase
+const hasSupabaseConfig = Boolean(
+  config &&
+  window.supabase &&
+  /^https:\/\/[^\s/]+\.supabase\.co(?:\/.*)?$/.test(config.url || "") &&
+  config.anonKey &&
+  config.anonKey !== "YOUR_SUPABASE_ANON_KEY"
+);
+const supabase = hasSupabaseConfig
   ? window.supabase.createClient(config.url, config.anonKey)
   : null;
-const hasSupabaseConfig = Boolean(
-  supabase &&
-  config.url &&
-  !config.url.endsWith("/rest/v1/") &&
-  !config.anonKey.includes("PASTE_") &&
-  config.anonKey !== "******"
-);
 
 let users = [];
 let payments = [];
@@ -240,7 +240,16 @@ $("#user-search").addEventListener("input", (event) => {
 });
 
 if (hasSupabaseConfig) supabase.auth.onAuthStateChange((_event, session) => { if (session) requireAdmin(); });
+const defaultPage = (() => {
+  const pathname = (location.pathname || "").split("/").pop() || "index.html";
+  const pageName = pathname.replace(/\.html?$/i, "");
+  const validPages = ["overview", "users", "payments", "matches", "chats", "settings"];
+  if (location.hash && location.hash.slice(1)) return location.hash.slice(1);
+  if (pageName && validPages.includes(pageName)) return pageName;
+  return "overview";
+})();
+
 render();
-showPage(location.hash.slice(1) || "overview");
-window.addEventListener("hashchange", () => showPage(location.hash.slice(1) || "overview"));
+showPage(defaultPage);
+window.addEventListener("hashchange", () => showPage(location.hash.slice(1) || defaultPage));
 requireAdmin();

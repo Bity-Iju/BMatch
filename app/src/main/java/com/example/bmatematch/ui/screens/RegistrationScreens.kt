@@ -1,9 +1,6 @@
 package com.example.bmatematch.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Person
@@ -22,6 +18,8 @@ import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.AttachFile
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +31,88 @@ import android.net.Uri
 import com.example.bmatematch.data.NigeriaLocations
 import com.example.bmatematch.ui.theme.BMateMatchTheme
 import com.example.bmatematch.ui.viewmodel.RegistrationState
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import com.example.bmatematch.R
+
+@Composable
+fun LoginScreen(
+    state: RegistrationState,
+    onLogin: (String, String) -> Unit,
+    onRegister: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.size(72.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(8.dp)) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            Text("Welcome back to BMatch", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("Sign in to continue to your professional community.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(24.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email address") },
+                        leadingIcon = { Icon(Icons.Rounded.Email, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    if (state.loginError != null) {
+                        Text(state.loginError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Button(
+                        onClick = { onLogin(email.trim(), password) },
+                        enabled = email.isNotBlank() && password.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Sign in")
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("New to BMatch?", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onRegister) { Text("Create your account") }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -400,29 +480,39 @@ fun Step4FurtherInfoScreen(
 @Composable
 fun Step5FurtherInfoScreen(
     state: RegistrationState,
-    onUpdateFields: (String, String) -> Unit,
+    onUpdateFields: (String, String, String, String, String) -> Unit,
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
     var sex by remember { mutableStateOf(state.sex) }
     var religion by remember { mutableStateOf(state.religion) }
+    var ageGroup by remember { mutableStateOf(state.ageGroup) }
+    var maritalStatus by remember { mutableStateOf(state.maritalStatus) }
+    var professionalCategory by remember { mutableStateOf(state.professionalCategory) }
+
     var sexExpanded by remember { mutableStateOf(false) }
     var religionExpanded by remember { mutableStateOf(false) }
+    var ageGroupExpanded by remember { mutableStateOf(false) }
+    var maritalExpanded by remember { mutableStateOf(false) }
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     val sexOptions = listOf("Male", "Female", "Other")
     val religionOptions = listOf("Christianity", "Islam", "Traditional", "None", "Other")
+    val ageGroupOptions = listOf("18-25", "26-35", "36-45", "46-55", "56+")
+    val maritalOptions = listOf("Single", "Married", "Divorced", "Widowed")
+    val categoryOptions = listOf("Medical Doctor", "Nurse", "Pharmacist", "Medical Laboratory Scientist", "Healthcare Administrator", "Other")
 
     RegistrationStepLayout(
-        title = "Demographics",
+        title = "Demographics & Background",
         step = 5,
         onNext = {
-            onUpdateFields(sex, religion)
+            onUpdateFields(sex, religion, ageGroup, maritalStatus, professionalCategory)
             onNext()
         },
         onBack = onBack,
-        isNextEnabled = sex.isNotBlank() && religion.isNotBlank()
+        isNextEnabled = sex.isNotBlank() && religion.isNotBlank() && ageGroup.isNotBlank() && maritalStatus.isNotBlank() && professionalCategory.isNotBlank()
     ) {
-        Text("We collect demographic data for statistical purposes and to personalize your experience.")
+        Text("Provide demographic and professional background details for better coordination.")
 
         ExposedDropdownMenuBox(
             expanded = sexExpanded,
@@ -487,6 +577,102 @@ fun Step5FurtherInfoScreen(
                 }
             }
         }
+
+        ExposedDropdownMenuBox(
+            expanded = ageGroupExpanded,
+            onExpandedChange = { ageGroupExpanded = !ageGroupExpanded }
+        ) {
+            OutlinedTextField(
+                value = ageGroup,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Age Group") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = ageGroupExpanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Rounded.Info, contentDescription = null) }
+            )
+            ExposedDropdownMenu(
+                expanded = ageGroupExpanded,
+                onDismissRequest = { ageGroupExpanded = false }
+            ) {
+                ageGroupOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            ageGroup = option
+                            ageGroupExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        ExposedDropdownMenuBox(
+            expanded = maritalExpanded,
+            onExpandedChange = { maritalExpanded = !maritalExpanded }
+        ) {
+            OutlinedTextField(
+                value = maritalStatus,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Marital Status") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = maritalExpanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) }
+            )
+            ExposedDropdownMenu(
+                expanded = maritalExpanded,
+                onDismissRequest = { maritalExpanded = false }
+            ) {
+                maritalOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            maritalStatus = option
+                            maritalExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        ExposedDropdownMenuBox(
+            expanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = !categoryExpanded }
+        ) {
+            OutlinedTextField(
+                value = professionalCategory,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Professional Category") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Rounded.AdminPanelSettings, contentDescription = null) }
+            )
+            ExposedDropdownMenu(
+                expanded = categoryExpanded,
+                onDismissRequest = { categoryExpanded = false }
+            ) {
+                categoryOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            professionalCategory = option
+                            categoryExpanded = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -517,6 +703,8 @@ fun Step6ReviewScreen(
                 ReviewItem(label = "Address", value = state.address)
                 ReviewItem(label = "Personal", value = "Age: ${state.age} | DOB: ${state.dob}")
                 ReviewItem(label = "Demographics", value = "Sex: ${state.sex} | Religion: ${state.religion}")
+                ReviewItem(label = "Background", value = "Age Group: ${state.ageGroup} | Marital: ${state.maritalStatus}")
+                ReviewItem(label = "Profession", value = state.professionalCategory)
             }
         }
 
@@ -545,31 +733,61 @@ fun ReviewItem(label: String, value: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainDashboardScreen(
-    onNavigateToAdmin: () -> Unit,
+    onNavigateToAdmin: () -> Unit = {},
     onNavigateToProfile: () -> Unit,
     onNavigateToChat: () -> Unit = {},
     onNavigateToMatching: () -> Unit = {}
 ) {
+    var selectedTab by remember { mutableStateOf(0) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("BMatch Dashboard") },
-                actions = {
-                    IconButton(onClick = onNavigateToAdmin) {
-                        Icon(imageVector = Icons.Rounded.AdminPanelSettings, contentDescription = "Admin")
-                    }
-                    IconButton(onClick = onNavigateToChat) {
-                        Icon(imageVector = Icons.Rounded.ChatBubbleOutline, contentDescription = "Chats")
-                    }
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(imageVector = Icons.Rounded.Person, contentDescription = "Profile")
-                    }
-                },
+                title = { Text("BityMatch Dashboard") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(Icons.Rounded.Home, contentDescription = "Home") },
+                    label = { Text("Home") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = {
+                        selectedTab = 1
+                        onNavigateToChat()
+                    },
+                    icon = { Icon(Icons.Rounded.ChatBubbleOutline, contentDescription = "Chats") },
+                    label = { Text("Chats") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = {
+                        selectedTab = 2
+                        onNavigateToMatching()
+                    },
+                    icon = { Icon(Icons.Rounded.Lock, contentDescription = "Matching") },
+                    label = { Text("Matching") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = {
+                        selectedTab = 3
+                        onNavigateToProfile()
+                    },
+                    icon = { Icon(Icons.Rounded.Person, contentDescription = "Profile") },
+                    label = { Text("Profile") }
+                )
+            }
         }
     ) { innerPadding ->
         Box(
@@ -586,12 +804,11 @@ fun MainDashboardScreen(
                         .size(120.dp)
                         .clickable(onClick = onNavigateToProfile)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Rounded.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(100.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(12.dp)) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }
@@ -678,6 +895,25 @@ fun MatchingScreen(onBack: () -> Unit) {
 fun Step1Preview() {
     BMateMatchTheme {
         Step1ConsentScreen(state = RegistrationState(), onUpdateConsent = {}, onNext = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Step2Preview() {
+    BMateMatchTheme {
+        Step2PersonalDetailsScreen(
+            state = RegistrationState(
+                name = "Dr. Jane Doe",
+                email = "jane.doe@example.com",
+                password = "securePassword123",
+                artId = "ART-12345",
+                facilityName = "Lagos General Hospital"
+            ),
+            onUpdateDetails = { _, _, _, _, _ -> },
+            onNext = {},
+            onBack = {}
+        )
     }
 }
 
@@ -817,7 +1053,6 @@ fun PaymentInitiationScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        }
 
                         HorizontalDivider(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
 
@@ -898,6 +1133,7 @@ fun PaymentInitiationScreen(
                         }
                     }
                 }
+              }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -938,5 +1174,26 @@ fun PaymentInitiationPreview() {
             ),
             onNext = {}
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardPreview() {
+    BMateMatchTheme {
+        MainDashboardScreen(
+            onNavigateToAdmin = {},
+            onNavigateToProfile = {},
+            onNavigateToChat = {},
+            onNavigateToMatching = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MatchingPreview() {
+    BMateMatchTheme {
+        MatchingScreen(onBack = {})
     }
 }
