@@ -17,11 +17,22 @@ let matches = [];
 let conversations = [];
 let messages = [];
 
+// Pentest hardening: HTML entity escaping against Stored XSS
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function userRow(user) {
   const access = user.paymentExempt
     ? '<span class="pill green">First 20 · Free</span>'
-    : `<span class="pill ${user.status === "Active" ? "green" : "orange"}">${user.status}</span>`;
-  return `<tr><td><strong>${user.name}</strong><small class="muted">${user.email}</small></td><td>${user.art}</td><td>${user.location}</td><td>${user.date}</td><td>${access}</td><td>${user.status === "Pending" ? `<button class="action approve" data-id="${user.id || ""}" data-art="${user.art}">Approve</button>` : "—"}</td></tr>`;
+    : `<span class="pill ${escapeHtml(user.status) === "Active" ? "green" : "orange"}">${escapeHtml(user.status)}</span>`;
+  return `<tr><td><strong>${escapeHtml(user.name)}</strong><small class="muted">${escapeHtml(user.email)}</small></td><td>${escapeHtml(user.art)}</td><td>${escapeHtml(user.location)}</td><td>${escapeHtml(user.date)}</td><td>${access}</td><td>${user.status === "Pending" ? `<button class="action approve" data-id="${escapeHtml(user.id || "")}" data-art="${escapeHtml(user.art)}">Approve</button>` : "—"}</td></tr>`;
 }
 
 function render() {
@@ -36,20 +47,20 @@ function render() {
   if ($("#pending-note")) $("#pending-note").textContent = pendingUsers ? "Needs review" : "None pending";
   if ($("#payments-note")) $("#payments-note").textContent = pendingPayments ? "Needs review" : "None pending";
   if ($("#matches-note")) $("#matches-note").textContent = "Live database total";
-  if ($("#recent-users")) $("#recent-users").innerHTML = users.slice(0, 3).map((user) => `<div class="recent-row"><span class="mini-avatar">${user.name.split(" ").map((part) => part[0]).join("")}</span><span><strong>${user.name}</strong><small>${user.art} • ${user.location}</small></span><time>${user.date}</time></div>`).join("");
+  if ($("#recent-users")) $("#recent-users").innerHTML = users.slice(0, 3).map((user) => `<div class="recent-row"><span class="mini-avatar">${escapeHtml(user.name.split(" ").map((part) => part[0]).join(""))}</span><span><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(user.art)} • ${escapeHtml(user.location)}</small></span><time>${escapeHtml(user.date)}</time></div>`).join("");
   if ($("#activity-list")) $("#activity-list").innerHTML = users.length || payments.length || matches.length
     ? `<p><b class="activity-dot green-dot"></b><span><strong>Database connected</strong><small>${users.length} users, ${payments.length} payments, ${matches.length} matches loaded</small></span></p>`
     : `<p class="muted">No records found in the connected database.</p>`;
   if ($("#users-table")) $("#users-table").innerHTML = users.map(userRow).join("");
   if ($("#payments-table")) $("#payments-table").innerHTML = payments.length
-    ? payments.map((payment) => `<tr><td><strong>${payment.name}</strong><small class="muted">${payment.art}</small></td><td>₦${Number(payment.amount).toLocaleString()}</td><td><button class="action receipt" data-path="${payment.receipt || ""}">${payment.receipt || "No receipt"}</button></td><td>${new Date(payment.date).toLocaleDateString()}</td><td><span class="pill ${payment.status === "Verified" ? "green" : "orange"}">${payment.status}</span></td><td>${payment.status === "Pending" ? `<button class="action verify" data-id="${payment.id}">Verify</button>` : "—"}</td></tr>`).join("")
+    ? payments.map((payment) => `<tr><td><strong>${escapeHtml(payment.name)}</strong><small class="muted">${escapeHtml(payment.art)}</small></td><td>₦${Number(payment.amount).toLocaleString()}</td><td><button class="action receipt" data-path="${escapeHtml(payment.receipt || "")}">${escapeHtml(payment.receipt || "No receipt")}</button></td><td>${new Date(payment.date).toLocaleDateString()}</td><td><span class="pill ${escapeHtml(payment.status) === "Verified" ? "green" : "orange"}">${escapeHtml(payment.status)}</span></td><td>${payment.status === "Pending" ? `<button class="action verify" data-id="${escapeHtml(payment.id)}">Verify</button>` : "—"}</td></tr>`).join("")
     : `<tr><td colspan="6" class="muted">No payment records found.</td></tr>`;
   if ($("#matches-table")) $("#matches-table").innerHTML = matches.length
     ? matches.map((match) => {
       const first = users.find((user) => user.id === match.first_user_id);
       const second = users.find((user) => user.id === match.second_user_id);
       const status = match.status === "active" ? "Active" : "Pending review";
-      return `<tr><td><strong>#${match.id.slice(0, 8)}</strong></td><td>${first?.name || match.first_user_id} + ${second?.name || match.second_user_id}</td><td>${new Date(match.created_at).toLocaleString()}</td><td><span class="pill ${status === "Active" ? "green" : "orange"}">${status}</span></td></tr>`;
+      return `<tr><td><strong>#${escapeHtml(match.id.slice(0, 8))}</strong></td><td>${escapeHtml(first?.name || match.first_user_id)} + ${escapeHtml(second?.name || match.second_user_id)}</td><td>${new Date(match.created_at).toLocaleString()}</td><td><span class="pill ${status === "Active" ? "green" : "orange"}">${status}</span></td></tr>`;
     }).join("")
     : `<tr><td colspan="4" class="muted">No matches found.</td></tr>`;
   if ($("#conversation-count")) $("#conversation-count").textContent = conversations.length;
@@ -60,11 +71,12 @@ function showPage(id) {
   const page = document.getElementById(id) ? id : "overview";
   document.querySelectorAll(".page").forEach((item) => item.classList.toggle("active", item.id === page));
   document.querySelectorAll(".nav-link").forEach((button) => button.classList.toggle("active", button.dataset.page === page));
-  $("#page-title").textContent = page === "payments" ? "Payments & receipts" : page[0].toUpperCase() + page.slice(1);
+  if ($("#page-title")) $("#page-title").textContent = page === "payments" ? "Payments & receipts" : page[0].toUpperCase() + page.slice(1);
   history.replaceState(null, "", `#${page}`);
 }
 
 function toast(message) {
+  if (!$("#toast")) return;
   $("#toast").textContent = message;
   $("#toast").style.display = "block";
   setTimeout(() => { $("#toast").style.display = "none"; }, 2200);
@@ -72,6 +84,7 @@ function toast(message) {
 
 function setConnectionStatus(message, connected = false) {
   const banner = $("#connection-banner");
+  if (!banner) return;
   banner.textContent = message;
   banner.classList.add("visible");
   banner.classList.toggle("connected", connected);
@@ -94,11 +107,12 @@ async function saveSettings() {
     toast("Connect Supabase before saving settings");
     return;
   }
+  const approvalPolicySelect = $("#approval-policy");
   const { error } = await supabase.from("admin_settings").upsert({
     id: true,
     currency: "NGN",
     payment_initiation_threshold: 5000,
-    auto_approve_users: $("#approval-policy").value === "automatic",
+    auto_approve_users: approvalPolicySelect ? approvalPolicySelect.value === "automatic" : false,
   });
   if (error) {
     toast(error.message);
@@ -163,16 +177,16 @@ async function loadLiveData() {
 
 async function requireAdmin() {
   if (!hasSupabaseConfig) {
-    $("#auth-screen").hidden = true;
+    if ($("#auth-screen")) $("#auth-screen").hidden = true;
     await loadLiveData();
     return;
   }
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    $("#auth-screen").hidden = false;
+    if ($("#auth-screen")) $("#auth-screen").hidden = false;
     return;
   }
-  $("#auth-screen").hidden = true;
+  if ($("#auth-screen")) $("#auth-screen").hidden = true;
   try {
     await loadLiveData();
   } catch (error) {
@@ -181,16 +195,21 @@ async function requireAdmin() {
   }
 }
 
-$("#login-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  $("#login-error").textContent = "";
-  const { error } = await supabase.auth.signInWithPassword({ email: $("#login-email").value, password: $("#login-password").value });
-  if (error) {
-    $("#login-error").textContent = error.message;
-    return;
-  }
-  await requireAdmin();
-});
+const loginForm = $("#login-form");
+if (loginForm) {
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if ($("#login-error")) $("#login-error").textContent = "";
+    const emailInput = $("#login-email");
+    const passwordInput = $("#login-password");
+    const { error } = await supabase.auth.signInWithPassword({ email: emailInput ? emailInput.value : "", password: passwordInput ? passwordInput.value : "" });
+    if (error) {
+      if ($("#login-error")) $("#login-error").textContent = error.message;
+      return;
+    }
+    await requireAdmin();
+  });
+}
 
 document.addEventListener("click", async (event) => {
   const navigation = event.target.closest("[data-page],[data-page-link]");
@@ -234,12 +253,19 @@ document.addEventListener("click", async (event) => {
   }
 });
 
-$("#user-search").addEventListener("input", (event) => {
-  const query = event.target.value.toLowerCase();
-  $("#users-table").innerHTML = users.filter((user) => `${user.name} ${user.email} ${user.art}`.toLowerCase().includes(query)).map(userRow).join("");
-});
+const userSearchInput = $("#user-search");
+if (userSearchInput) {
+  userSearchInput.addEventListener("input", (event) => {
+    const query = event.target.value.toLowerCase();
+    if ($("#users-table")) {
+      $("#users-table").innerHTML = users.filter((user) => `${user.name} ${user.email} ${user.art}`.toLowerCase().includes(query)).map(userRow).join("");
+    }
+  });
+}
 
-if (hasSupabaseConfig) supabase.auth.onAuthStateChange((_event, session) => { if (session) requireAdmin(); });
+if (hasSupabaseConfig && supabase.auth) {
+  supabase.auth.onAuthStateChange((_event, session) => { if (session) requireAdmin(); });
+}
 const defaultPage = (() => {
   const pathname = (location.pathname || "").split("/").pop() || "index.html";
   const pageName = pathname.replace(/\.html?$/i, "");
