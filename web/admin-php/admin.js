@@ -28,23 +28,23 @@ function render() {
   const pendingUsers = users.filter((user) => user.status === "Pending").length;
   const pendingPayments = payments.filter((payment) => payment.status === "Pending").length;
   const activeMatches = matches.filter((match) => match.status === "active").length;
-  $("#total-accounts").textContent = users.length;
-  $("#pending-accounts").textContent = pendingUsers;
-  $("#pending-payments").textContent = pendingPayments;
-  $("#active-matches").textContent = activeMatches;
-  $("#accounts-note").textContent = "Live database total";
-  $("#pending-note").textContent = pendingUsers ? "Needs review" : "None pending";
-  $("#payments-note").textContent = pendingPayments ? "Needs review" : "None pending";
-  $("#matches-note").textContent = "Live database total";
-  $("#recent-users").innerHTML = users.slice(0, 3).map((user) => `<div class="recent-row"><span class="mini-avatar">${user.name.split(" ").map((part) => part[0]).join("")}</span><span><strong>${user.name}</strong><small>${user.art} • ${user.location}</small></span><time>${user.date}</time></div>`).join("");
-  $("#activity-list").innerHTML = users.length || payments.length || matches.length
+  if ($("#total-accounts")) $("#total-accounts").textContent = users.length;
+  if ($("#pending-accounts")) $("#pending-accounts").textContent = pendingUsers;
+  if ($("#pending-payments")) $("#pending-payments").textContent = pendingPayments;
+  if ($("#active-matches")) $("#active-matches").textContent = activeMatches;
+  if ($("#accounts-note")) $("#accounts-note").textContent = "Live database total";
+  if ($("#pending-note")) $("#pending-note").textContent = pendingUsers ? "Needs review" : "None pending";
+  if ($("#payments-note")) $("#payments-note").textContent = pendingPayments ? "Needs review" : "None pending";
+  if ($("#matches-note")) $("#matches-note").textContent = "Live database total";
+  if ($("#recent-users")) $("#recent-users").innerHTML = users.slice(0, 3).map((user) => `<div class="recent-row"><span class="mini-avatar">${user.name.split(" ").map((part) => part[0]).join("")}</span><span><strong>${user.name}</strong><small>${user.art} • ${user.location}</small></span><time>${user.date}</time></div>`).join("");
+  if ($("#activity-list")) $("#activity-list").innerHTML = users.length || payments.length || matches.length
     ? `<p><b class="activity-dot green-dot"></b><span><strong>Database connected</strong><small>${users.length} users, ${payments.length} payments, ${matches.length} matches loaded</small></span></p>`
     : `<p class="muted">No records found in the connected database.</p>`;
-  $("#users-table").innerHTML = users.map(userRow).join("");
-  $("#payments-table").innerHTML = payments.length
+  if ($("#users-table")) $("#users-table").innerHTML = users.map(userRow).join("");
+  if ($("#payments-table")) $("#payments-table").innerHTML = payments.length
     ? payments.map((payment) => `<tr><td><strong>${payment.name}</strong><small class="muted">${payment.art}</small></td><td>₦${Number(payment.amount).toLocaleString()}</td><td><button class="action receipt" data-path="${payment.receipt || ""}">${payment.receipt || "No receipt"}</button></td><td>${new Date(payment.date).toLocaleDateString()}</td><td><span class="pill ${payment.status === "Verified" ? "green" : "orange"}">${payment.status}</span></td><td>${payment.status === "Pending" ? `<button class="action verify" data-id="${payment.id}">Verify</button>` : "—"}</td></tr>`).join("")
     : `<tr><td colspan="6" class="muted">No payment records found.</td></tr>`;
-  $("#matches-table").innerHTML = matches.length
+  if ($("#matches-table")) $("#matches-table").innerHTML = matches.length
     ? matches.map((match) => {
       const first = users.find((user) => user.id === match.first_user_id);
       const second = users.find((user) => user.id === match.second_user_id);
@@ -52,8 +52,8 @@ function render() {
       return `<tr><td><strong>#${match.id.slice(0, 8)}</strong></td><td>${first?.name || match.first_user_id} + ${second?.name || match.second_user_id}</td><td>${new Date(match.created_at).toLocaleString()}</td><td><span class="pill ${status === "Active" ? "green" : "orange"}">${status}</span></td></tr>`;
     }).join("")
     : `<tr><td colspan="4" class="muted">No matches found.</td></tr>`;
-  $("#conversation-count").textContent = conversations.length;
-  $("#message-count").textContent = messages.length;
+  if ($("#conversation-count")) $("#conversation-count").textContent = conversations.length;
+  if ($("#message-count")) $("#message-count").textContent = messages.length;
 }
 
 function showPage(id) {
