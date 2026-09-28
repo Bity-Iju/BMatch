@@ -71,6 +71,45 @@ class SupabaseClient {
         SupabaseAccess(userId, rows.length() > 0 && rows.getJSONObject(0).optBoolean("payment_exempt"))
     }
 
+    suspend fun updateProfile(userId: String, state: RegistrationState, token: String): Boolean = withContext(Dispatchers.IO) {
+        requireConfigured()
+        request(
+            "${SupabaseConfig.url}/rest/v1/profiles?id=eq.$userId",
+            "PATCH",
+            JSONObject()
+                .put("full_name", state.name)
+                .put("address", state.address)
+                .put("age", state.age)
+                .put("age_range", state.ageGroup.ifBlank { state.age })
+                .put("sex", state.sex)
+                .put("religion", state.religion)
+                .put("marital_status", state.maritalStatus)
+                .put("professional_category", state.professionalCategory)
+                .put("status_update", state.statusUpdate)
+                .put("avatar_res", state.avatarRes)
+                .put("dob", state.dob)
+                .toString(),
+            token
+        )
+        true
+    }
+
+    suspend fun submitPayment(userId: String, amount: Double, receiptPath: String?, token: String): Boolean = withContext(Dispatchers.IO) {
+        requireConfigured()
+        request(
+            "${SupabaseConfig.url}/rest/v1/payments",
+            "POST",
+            JSONObject()
+                .put("user_id", userId)
+                .put("amount", amount)
+                .put("receipt_path", receiptPath)
+                .put("status", "pending")
+                .toString(),
+            token
+        )
+        true
+    }
+
     private fun requireConfigured() {
         require(
             !SupabaseConfig.url.contains("YOUR_PROJECT") &&
