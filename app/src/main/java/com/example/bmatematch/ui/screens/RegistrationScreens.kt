@@ -529,7 +529,7 @@ fun Step5FurtherInfoScreen(
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) }
-            )
+send this to expo build            )
             ExposedDropdownMenu(
                 expanded = sexExpanded,
                 onDismissRequest = { sexExpanded = false }
