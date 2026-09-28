@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -133,12 +134,20 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             is RegistrationStep6 -> NavEntry(key) {
+                                val scope = rememberCoroutineScope()
                                 Step6ReviewScreen(
                                     state = registrationState,
                                     onNext = {
                                         registrationViewModel.completeRegistration()
-                                        registrationViewModel.syncToSupabase()
-                                        backStack.add(PaymentInitiation)
+                                        scope.launch {
+                                            val access = registrationViewModel.syncAndGetAccess()
+                                            if (access != null && access.paymentExempt) {
+                                                backStack.clear()
+                                                backStack.add(MainDashboard)
+                                            } else {
+                                                backStack.add(PaymentInitiation)
+                                            }
+                                        }
                                     },
                                     onBack = { backStack.removeAt(backStack.size - 1) }
                                 )

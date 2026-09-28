@@ -76,6 +76,22 @@ class RegistrationViewModel : ViewModel() {
         }
     }
 
+    suspend fun syncAndGetAccess(): com.example.bmatematch.data.SupabaseAccess? {
+        val current = _uiState.value
+        val registration = if (current.uniqueVersionNumber.isBlank()) {
+            current.copy(uniqueVersionNumber = createUniqueVersion(current.email)).also { prepared ->
+                _uiState.update { state -> state.copy(uniqueVersionNumber = prepared.uniqueVersionNumber) }
+            }
+        } else {
+            current
+        }
+        val access = runCatching { SupabaseClient().register(registration) }.getOrNull()
+        if (access != null) {
+            _uiState.update { it.copy(paymentExempt = access.paymentExempt, supabaseSyncError = null) }
+        }
+        return access
+    }
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             runCatching { SupabaseClient().login(email, password) }
